@@ -1,0 +1,96 @@
+# GoSavor Affiliate API Server
+
+GoSavor 聯盟行銷廣告推薦 API。根據用戶的掃描情境（地點、類型）動態推薦 Klook/KKDay 商品。
+
+## 架構
+
+```
+GoSavor App → GET /api/ads?city=osaka&type=food&lang=zh-TW
+                ↓
+            API Server（Cloudflare Workers）
+                ↓
+            回傳 2-3 個推薦商品（含追蹤連結）
+                ↓
+            用戶點擊 → POST /api/ads/click → 跳轉商品頁
+```
+
+## API 規格
+
+### GET /api/ads
+取得推薦商品
+
+**Query Parameters:**
+| 參數 | 說明 | 範例 |
+|------|------|------|
+| city | 城市 | tokyo, osaka, kyoto |
+| type | 掃描類型 | food, shopping, sightseeing |
+| lang | 語言 | zh-TW, en, ko |
+| limit | 數量 | 3 (預設) |
+
+**Response:**
+```json
+{
+  "ads": [
+    {
+      "id": "klook_601",
+      "platform": "klook",
+      "title": "富士山及箱根一日遊",
+      "imageUrl": "https://...",
+      "affiliateUrl": "https://www.klook.com/zh-TW/activity/601/?aid=30600",
+      "category": "sightseeing",
+      "region": "Tokyo"
+    }
+  ]
+}
+```
+
+### POST /api/ads/click
+記錄點擊
+
+**Body:**
+```json
+{
+  "adId": "klook_601",
+  "city": "tokyo",
+  "scanMode": "menu",
+  "timestamp": 1711900000000
+}
+```
+
+## 聯盟行銷帳號
+
+| 平台 | Affiliate ID | 連結格式 |
+|------|-------------|---------|
+| Klook | `30600` | `klook.com/zh-TW/activity/{id}/?aid=30600` |
+| KKDay | `14336` | `kkday.com/zh-tw/product/{id}?cid=14336` |
+
+## 現有資料
+
+| 檔案 | 說明 |
+|------|------|
+| `data/klook_products.json` | 700 個 Klook 日本商品 |
+| `data/kkday_tokyo.json` | KKDay 東京商品（需更新連結） |
+| `data/kkday_osaka.json` | KKDay 大阪商品（需更新連結） |
+| `scripts/kkday_scraper.py` | KKDay 商品爬蟲 |
+| `scripts/kkday-scraper.ts` | KKDay 爬蟲（TypeScript） |
+| `scripts/klookService.ts` | Klook 搜尋服務（Fuse.js） |
+| `scripts/affiliate-url-builder.ts` | 聯盟連結產生器 |
+
+## 部署方案
+
+| 方案 | 費用 | 額度 |
+|------|------|------|
+| Cloudflare Workers | 免費 | 10萬次/天 |
+| Firebase Functions | 免費 | 200萬次/月 |
+| Vercel Edge | 免費 | 100萬次/月 |
+
+## TODO
+
+- [ ] 建立 Cloudflare Worker
+- [ ] 匯入商品資料到 D1 Database
+- [ ] 實作 GET /api/ads 端點
+- [ ] 實作 POST /api/ads/click 追蹤
+- [ ] 更新 KKDay 商品連結（舊的已失效）
+- [ ] 建立管理後台（新增/停用商品）
+- [ ] GoSavor App 改用 API 取代內建 JSON
+- [ ] 加入季節性推薦（櫻花季、楓葉季等）
