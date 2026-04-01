@@ -61,20 +61,38 @@ GoSavor App → GET /api/ads?city=osaka&type=food&lang=zh-TW
 
 | 平台 | Affiliate ID | 連結格式 |
 |------|-------------|---------|
-| Klook | `30600` | `klook.com/zh-TW/activity/{id}/?aid=30600` |
-| KKDay | `14336` | `kkday.com/zh-tw/product/{id}?cid=14336` |
+| **Klook** | `30600` | `klook.com/zh-TW/activity/{id}/?aid=30600` |
+| **KKDay** | `14336` | `kkday.com/zh-tw/product/{id}?cid=14336` |
+| **Agoda** | `1913061` | `agoda.com/...?cid=1913061` |
+| **Expedia/Hotels.com** | `1100l5zpRT` | CJ affiliate network, `camref=1100l5zpRT` |
 
 ## 現有資料
 
+### 商品資料庫
+| 檔案 | 說明 | 數量 |
+|------|------|------|
+| `data/klook_products.json` | Klook 日本旅遊商品 | 700 個 |
+| `data/kkday_tokyo.json` | KKDay 東京商品（需更新連結） | ~20 個 |
+| `data/kkday_osaka.json` | KKDay 大阪商品（需更新連結） | ~20 個 |
+| `data/japan_hotels_optimized.csv` | Agoda 日本飯店（含 affiliate link） | **43,000 間** |
+| `data/agodaCityIds.js` | Agoda 城市 ID 對照表 | 全日本 |
+
+### 爬蟲 & 工具
 | 檔案 | 說明 |
 |------|------|
-| `data/klook_products.json` | 700 個 Klook 日本商品 |
-| `data/kkday_tokyo.json` | KKDay 東京商品（需更新連結） |
-| `data/kkday_osaka.json` | KKDay 大阪商品（需更新連結） |
-| `scripts/kkday_scraper.py` | KKDay 商品爬蟲 |
+| `scripts/kkday_scraper.py` | KKDay 商品爬蟲（Python） |
 | `scripts/kkday-scraper.ts` | KKDay 爬蟲（TypeScript） |
-| `scripts/klookService.ts` | Klook 搜尋服務（Fuse.js） |
-| `scripts/affiliate-url-builder.ts` | 聯盟連結產生器 |
+| `scripts/klookService.ts` | Klook 搜尋服務（Fuse.js 模糊搜尋） |
+| `scripts/affiliate-url-builder.ts` | 聯盟連結產生器（Klook + KKDay） |
+| `scripts/agoda-api-client.ts` | Agoda API 客戶端 |
+| `scripts/agoda-api-service.ts` | Agoda 搜尋服務 |
+| `scripts/agodaService.ts` | Agoda 住宿服務 |
+
+### 參考元件（來自 GoSavor / jptg2026）
+| 檔案 | 說明 |
+|------|------|
+| `scripts/HotelSearchModal.tsx` | 飯店搜尋 UI（Agoda/Expedia/Hotels.com/Klook 四合一） |
+| `scripts/FlightCard.tsx` | 機票搜尋（Expedia/Skyscanner affiliate） |
 
 ## 部署方案
 
