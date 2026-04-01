@@ -14,48 +14,75 @@ GoSavor App → GET /api/ads?city=osaka&type=food&lang=zh-TW
             用戶點擊 → POST /api/ads/click → 跳轉商品頁
 ```
 
+## 架構原則
+
+**Server = 純資料供應商，不做判斷。App = 所有智慧邏輯在本地。**
+
+```
+App 本地判斷：                      API Server：
+├── GPS 定位 → 哪個城市              ├── 儲存商品資料
+├── 時間 → 早/中/晚                  ├── 定期爬蟲更新
+├── 掃描類型 → 要什麼分類            ├── 查詢 API
+├── 用戶行為 → 推薦優先級            ├── 記錄點擊
+└── 組合參數 → 呼叫 API              └── 管理後台
+```
+
 ## API 規格
 
-### GET /api/ads
-取得推薦商品
+### GET /api/products
+查詢商品（純資料，不做推薦判斷）
 
 **Query Parameters:**
 | 參數 | 說明 | 範例 |
 |------|------|------|
-| city | 城市 | tokyo, osaka, kyoto |
-| type | 掃描類型 | food, shopping, sightseeing |
+| region | 地區 | Tokyo, Kansai, Kyushu |
+| category | 分類 | ticket, tour, food, transport, shopping |
+| platform | 平台 | klook, kkday, agoda |
 | lang | 語言 | zh-TW, en, ko |
-| limit | 數量 | 3 (預設) |
+| limit | 數量 | 10 (預設) |
 
 **Response:**
 ```json
 {
-  "ads": [
+  "products": [
     {
       "id": "klook_601",
       "platform": "klook",
       "title": "富士山及箱根一日遊",
       "imageUrl": "https://...",
       "affiliateUrl": "https://www.klook.com/zh-TW/activity/601/?aid=30600",
-      "category": "sightseeing",
-      "region": "Tokyo"
+      "category": "tour",
+      "region": "Tokyo",
+      "price": 8900,
+      "currency": "TWD",
+      "active": true,
+      "updatedAt": "2026-04-01"
     }
   ]
 }
 ```
 
-### POST /api/ads/click
-記錄點擊
+### POST /api/clicks
+記錄點擊（分析用）
 
 **Body:**
 ```json
 {
-  "adId": "klook_601",
-  "city": "tokyo",
-  "scanMode": "menu",
+  "productId": "klook_601",
+  "region": "Tokyo",
+  "category": "tour",
   "timestamp": 1711900000000
 }
 ```
+
+## Server 定期任務（Cron）
+
+| 頻率 | 任務 |
+|------|------|
+| 每天 | 檢查商品連結是否有效 |
+| 每週 | 爬蟲更新 Klook/KKDay 最新商品 |
+| 每月 | 更新 Agoda 飯店資料 |
+| 即時 | 管理後台手動新增/停用 |
 
 ## 聯盟行銷帳號
 
